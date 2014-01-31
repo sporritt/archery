@@ -65,9 +65,22 @@ object ArcheryBuild extends Build {
     )
   ) ++ noPublish
 
+ // server project
+ lazy val server = Project("server", file("server")).
+    settings(serverSettings: _*).
+    dependsOn(core)
+
+  lazy val serverSettings = Seq(
+    name := "archery-server",
+    libraryDependencies ++= Seq(
+      scalaTest % "test",
+      scalaCheck % "test"
+    )
+  )
+
   // aggregate top-level project
   lazy val aggregate = Project("aggregate", file(".")).
-    aggregate(core, benchmark).
+    aggregate(core, benchmark, server).
     settings(aggregateSettings: _*)
 
   lazy val aggregateSettings = Seq(
