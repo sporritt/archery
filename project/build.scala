@@ -73,6 +73,8 @@ object ArcheryBuild extends Build {
   lazy val serverSettings = Seq(
     name := "archery-server",
     libraryDependencies ++= Seq(
+      "io.netty" % "netty-all" % "4.0.15.Final",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.1.3",
       scalaTest % "test",
       scalaCheck % "test"
     )
