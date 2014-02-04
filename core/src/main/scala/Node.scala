@@ -20,6 +20,7 @@ import Constants._
  */
 sealed trait Member {
   def geom: Geom
+  val uuid = java.util.UUID.randomUUID.toString
 }
 
 /**
