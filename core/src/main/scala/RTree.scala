@@ -70,6 +70,12 @@ case class RTree[A](root: Node[A], size: Int) {
    */
   def removeAll(entries: Iterable[Entry[A]]): RTree[A] =
     entries.foldLeft(this)(_ remove _)
+    
+ /**
+  * Remove the Entry with the given uuid from the tree, returning a new tree
+  */
+  def remove(uuid:String):RTree[A] = 
+    removeAll(entries.filter(e => e.uuid == uuid).toIterable)
 
   /**
    * Return a sequence of all entries found in the given search space.
