@@ -28,16 +28,16 @@ class Forest[A] {
   /**
    * Get a list of the meta data for all the trees in the forest.
    */
-  def list:Iterable[TreeMeta] = trees.values.map(m => m.meta)
+  def list:Iterable[TreeInfo[A]] = trees.values.map(m => m.meta.info)
   
   /**
    * Add a new tree.  A new RTree is generated and this method returns (tree meta, tree).
    */
   def add(desc:String = "An RTree"):TreeHolder[A] = {
-    val meta = new TreeMeta(desc=desc)
     val r = RTree.empty[A]
+    val meta = new TreeMeta(r, desc=desc)
     val h = new TreeHolder(meta, r)
-    trees.put(meta.id, h)
+    trees.put(meta.info.id, h)
     h
   }
   
@@ -69,8 +69,9 @@ class Forest[A] {
   def insert(treeId: String, x: Float, y: Float, value: A):Unit = {
     trees.get(treeId) match {
       case t:Some[TreeHolder[A]] => {
-        val newHolder = new TreeHolder(t.get.meta.copy(treeId), t.get.tree.insert(x, y, value))
-        trees.put(t.get.meta.id, newHolder)
+        val newTree = t.get.tree.insert(x, y, value)
+        val newHolder = new TreeHolder(t.get.meta.copy(newTree), newTree)
+        trees.put(t.get.meta.info.id, newHolder)
       }
       case _ => Nil
     }
@@ -118,10 +119,15 @@ class Forest[A] {
   }
 }
 
-case class TreeMeta(val id:String = java.util.UUID.randomUUID.toString, val desc:String) { 
-	def copy(newId:String) = {
-	  new TreeMeta(newId, desc)
+case class TreeInfo[A](tree:RTree[A], val desc:String) {
+  val id = tree.uuid
+}
+
+case class TreeMeta[A](val tree:RTree[A], desc:String) {
+  val info = new TreeInfo(tree, desc)
+	def copy(newTree:RTree[A]) = {
+	  new TreeMeta(newTree, desc)
 	}
 }
 
-case class TreeHolder[A](val meta:TreeMeta, val tree:RTree[A]) {}
+case class TreeHolder[A](val meta:TreeMeta[A], val tree:RTree[A]) {}
