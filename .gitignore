@@ -21,3 +21,5 @@ TAGS
 .project
 .settings
 .classpath
+.cache
+
