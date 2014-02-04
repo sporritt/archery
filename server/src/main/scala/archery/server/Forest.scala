@@ -21,24 +21,23 @@ import archery.Box
  */
 class Forest[A] {
   
-  lazy val trees:scala.collection.mutable.Map[String, TreeHolder[A]] = {
-    new scala.collection.mutable.HashMap[String, TreeHolder[A]]
+  lazy val trees:scala.collection.mutable.Map[String, TreeMeta[A]] = {
+    new scala.collection.mutable.HashMap[String, TreeMeta[A]]
   }
   
   /**
    * Get a list of the meta data for all the trees in the forest.
    */
-  def list:Iterable[TreeInfo[A]] = trees.values.map(m => m.meta.info)
+  def list:Iterable[TreeInfo[A]] = trees.values.map(m => m.info)
   
   /**
    * Add a new tree.  A new RTree is generated and this method returns (tree meta, tree).
    */
-  def add(desc:String = "An RTree"):TreeHolder[A] = {
+  def add(desc:String = "An RTree"):TreeInfo[A] = {
     val r = RTree.empty[A]
     val meta = new TreeMeta(r, desc=desc)
-    val h = new TreeHolder(meta, r)
-    trees.put(meta.info.id, h)
-    h
+    trees.put(meta.info.id, meta)
+    meta.info
   }
   
   /**
@@ -53,7 +52,17 @@ class Forest[A] {
    */
   def get(treeId:String):Option[RTree[A]] = {
     trees.get(treeId) match {
-      case t:Some[TreeHolder[A]] => Some(t.get.tree)
+      case t:Some[TreeMeta[A]] => Some(t.get.tree)
+      case _ => None
+    }
+  }
+  
+  /**
+   * gets info about the tree with the given id. currently this is just the tree's description.
+   */
+  def info(treeId:String):Option[TreeInfo[A]] = {
+    trees.get(treeId) match {
+      case t:Some[TreeMeta[A]] => Some(t.get.info)
       case _ => None
     }
   }
@@ -68,10 +77,10 @@ class Forest[A] {
    */
   def insert(treeId: String, x: Float, y: Float, value: A):Unit = {
     trees.get(treeId) match {
-      case t:Some[TreeHolder[A]] => {
+      case t:Some[TreeMeta[A]] => {
         val newTree = t.get.tree.insert(x, y, value)
-        val newHolder = new TreeHolder(t.get.meta.copy(newTree), newTree)
-        trees.put(t.get.meta.info.id, newHolder)
+        val newMeta = t.get.copy(newTree)
+        trees.put(newMeta.info.id, newMeta)
       }
       case _ => Nil
     }
@@ -119,15 +128,19 @@ class Forest[A] {
   }
 }
 
+/**
+ * info about a tree.
+ */
 case class TreeInfo[A](tree:RTree[A], val desc:String) {
   val id = tree.uuid
 }
 
+/**
+ * object we store - the info and the tree, separately.
+ */
 case class TreeMeta[A](val tree:RTree[A], desc:String) {
   val info = new TreeInfo(tree, desc)
 	def copy(newTree:RTree[A]) = {
 	  new TreeMeta(newTree, desc)
 	}
 }
-
-case class TreeHolder[A](val meta:TreeMeta[A], val tree:RTree[A]) {}
