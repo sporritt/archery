@@ -26,6 +26,8 @@ object RTree {
  * tree (something that individual nodes don't do).
  */
 case class RTree[A](root: Node[A], size: Int) {
+  
+  val uuid = java.util.UUID.randomUUID.toString
 
   /**
    * Insert a value into the tree at (x, y), returning a new tree.
